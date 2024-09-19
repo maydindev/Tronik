@@ -1,4 +1,4 @@
-import { useState,useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import Settings from "./components/Settings";
 import Keys from "./components/Keys";
 import "./styles.css";
@@ -204,7 +204,41 @@ export default function App() {
 
 */
 
-  
+  //Tuşa basılı tutulmaması için tanımlanan flag
+  let isKeyDown = false;
+
+  function handleKeyDown(e) {
+    if (!isKeyDown) {
+      setSynthKeys((prev) =>
+        prev.map((key) =>
+          key.computerKey === e.key.toLowerCase() && !key.active
+            ? { ...key, active: true, keyPressed: true }
+            : key
+        )
+      );
+      isKeyDown = true;
+    }
+  }
+
+  function handleKeyUp(e) {
+    setSynthKeys((prev) =>
+      prev.map((key) =>
+        key.computerKey === e.key.toLowerCase()
+          ? { ...key, keyPressed: false }
+          : key
+      )
+    );
+    isKeyDown = false;
+  }
+
+  function handleMouseDown(keyName) {
+    setSynthKeys((prev) =>
+      prev.map((key) =>
+        key.keyName === keyName && !key.active ? { ...key, active: true } : key
+      )
+    );
+  }
+
   useEffect(() => {
     window.addEventListener("keydown", handleKeyDown);
     window.addEventListener("keyup", handleKeyUp);
@@ -213,51 +247,15 @@ export default function App() {
       window.removeEventListener("keyup", handleKeyUp);
     };
   }, []);
-  
-
-  function handleKeyDown(e) {
-    setSynthKeys((prev) =>
-      prev.map((key) =>
-        key.computerKey === e.key.toLowerCase()
-          ? { ...key, active: true, keyPressed: true }
-          : key
-      )
-    );
-  }
-
-  function handleKeyUp(e) {
-    setSynthKeys((prev) =>
-      prev.map((key) =>
-        key.computerKey === e.key.toLowerCase()
-          ? { ...key, active: true, keyPressed: false }
-          : key
-      )
-    );
-  }
-
-  function handleMouseDown(keyName) {
-    setSynthKeys((prev) =>
-      prev.map((key) =>
-        key.keyName === keyName
-          ? { ...key, active:true}
-          : key
-      )
-    );
-  }
-
-
 
   return (
     <div className="wrapper">
       <div
         className="main-container"
-        onClick={(e)=>console.log(e.target)}
-        onMouseDown={(e) => 
-          handleMouseDown(e.target.dataset.note)
-        }
+        //onClick={(e)=>console.log(e.target)}
+        onMouseDown={(e) => handleMouseDown(e.target.dataset.note)}
       >
         <Settings {...propsBundle} />
-
         <Keys showKeys={showKeys} synthKeys={synthKeys} />
       </div>
     </div>
